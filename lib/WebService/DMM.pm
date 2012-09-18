@@ -62,7 +62,7 @@ sub search {
     $param{operation}    = $args{operation} || 'ItemList';
     $param{version}      = '1.00';
     $param{timestamp}    = $args{timestamp} || _format_date();
-    $param{site}         = $args{site};
+    $param{site}         = _validate_site_param($args{site});
 
     # optional parameters
     for my $p (qw/hits offset sort/) {
@@ -79,7 +79,6 @@ sub search {
     if ($args{keyword}) {
         $param{keyword} = _encode_keyword($args{keyword});
     }
-
 
     $self->_send_request(%param);
 }
@@ -103,6 +102,10 @@ sub _validate_sort_param {
 sub _validate_site_param {
     my $site = shift;
 
+    unless (defined $site) {
+        Carp::croak("'site' parameter is mandatory parameter");
+    }
+
     unless ($site eq 'DMM.co.jp' || $site eq 'DMM.com') {
         Carp::croak("'site' parameter should be 'DMM.co.jp' or 'DMM.com'");
     }
@@ -118,6 +121,16 @@ sub _validate_hits_param {
     }
 
     return $hits;
+}
+
+sub _validate_offset_param {
+    my $offset = shift;
+
+    unless ($offset >= 1) {
+        Carp::croak("'offset' parameter should be positive number(n >= 1)");
+    }
+
+    return $offset;
 }
 
 sub _format_date {
