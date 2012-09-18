@@ -5,7 +5,7 @@ use warnings;
 use Carp ();
 
 use Class::Accessor::Lite (
-    rw => [ qw/content_id product_id URL affiliateURL title
+    rw => [ qw/content_id product_id URL affiliateURL title price
                date keywords actresses directors author maker label
                jancode isbn stock/ ],
 );
@@ -59,6 +59,8 @@ WebService::DMM::Item is object which stands for DMM item.
 =item affiliateURL(:string)
 
 =item title(:string)
+
+=item price(:int)
 
 =item date(:string)
 
