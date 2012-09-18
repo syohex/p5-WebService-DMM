@@ -7,7 +7,7 @@ use Carp ();
 use Class::Accessor::Lite (
     rw => [ qw/content_id product_id URL affiliateURL title
                date keywords actresses directors author maker label
-               jancode isbn stock / ],
+               jancode isbn stock/ ],
 );
 
 sub new {
