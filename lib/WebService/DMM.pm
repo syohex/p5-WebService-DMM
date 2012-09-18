@@ -221,14 +221,14 @@ sub items {
 
 my %service_floor = (
     'DMM.com' => {
-        nandemo      => [qw/fashion_ladies fashion_mems rental_iroiro/],
-        rental       => [qw/rental_dvd ppr_dvd rental_cd ppr_cd set_dvd set_cd comic/],
-        mono         => [qw/dvd cd book game hobby kaden houseware gourmet/],
-        pcsoft       => [qw/pcgame pcsoft/],
-        digital_book => [qw/comic novel magazine photo audio movie/],
-        monthly      => [qw/toei animate shochikugeino idol cinepara dgc fleague/],
-        digital      => [qw/bandai anime video idol cinema fight/],
         lod          => [qw/akb48 ske48/],
+        digital      => [qw/bandai anime video idol cinema fight/],
+        monthly      => [qw/toei animate shochikugeino idol cinepara dgc fleague/],
+        digital_book => [qw/comic novel magazine photo audio movie/],
+        pcsoft       => [qw/pcgame pcsoft/],
+        mono         => [qw/dvd cd book game hobby kaden houseware gourmet/],
+        rental       => [qw/rental_dvd ppr_dvd rental_cd ppr_cd set_dvd set_cd comic/],
+        nandemo      => [qw/fashion_ladies fashion_mems rental_iroiro/],
     },
 
     'DMM.co.jp' => {
@@ -299,13 +299,145 @@ WebService::DMM - DMM webservice module
 WebService::DMM is DMM webservice module.
 DMML<http://www.dmm.com> is Japanese shopping site.
 
+=head1 INTERFACES
+
+=head2 Class Methods
+
+=head2 Instance Method
+
+=head3 $dmm->search(%param)
+
+I<%params> mandatory parameters are:
+
+=over
+
+=item operation :Str = "ItemList"
+
+=item version :Str = "1.00"
+
+=item timestamp :Str = current time
+
+Time format should be 'Year-Month-Day Hour:Minute:Second'
+(strftime format is '%Y-%m-%d %T')
+
+=item site :Str
+
+Site, 'DMM.co.jp' or 'DMM.com'.
+
+=back
+
+I<%param> optional parameters are:
+
+=over
+
+=item hits :Int = 20
+
+=item offset :Int = 1
+
+=item sort :Str = "rank"
+
+Type of sort, 'rank', '+price', '-price', 'date', 'review'.
+
+=item service :Str
+
+See "SERVICE AND FLOOR" section
+
+=item floor :Str
+
+See "SERVICE AND FLOOR" section
+
+=item keyword :Str
+
+keyword should be string(not byte sequence).
+
+=back
+
+=head1 SERVICE AND FLOOR
+
+DMM.com services are:
+
+=over
+
+=item lod
+
+akb48, ske48
+
+=item digital
+
+bandai, anime, video, idol, cinema, fight
+
+=item monthly
+
+toei, animate, shochikugeino, idol, cinepara, dgc, fleague
+
+=item digital_book
+
+comic, novel, magazine, photo, audio, movie
+
+=item pcsoft
+
+pcgame, pcsoft
+
+=item mono
+
+dvd, cd, book, game, hobby, kaden, houseware, gourmet
+
+=item rental
+
+rental_dvd, ppr_dvd, rental_cd, ppr_cd, set_dvd, set_cd, comic
+
+=item nandemo
+
+fashion_ladies, fashion_mems, rental_iroiro
+
+=back
+
+DMM.co.jp services are:
+
+=over
+
+=item digital
+
+videoa, videoc, nikkatsu, anime, photo
+
+=item monthly
+
+shirouto, nikkatsu, paradisetv, animech, dream, avstation, playgirl, alice,
+crystal, hmp, waap, momotarobb, moodyz, prestige, jukujo, sod, mania, s1, kmp
+
+=item ppm
+
+video, videoc
+
+=item pcgame
+
+pcgame
+
+=item doujin
+
+doujin
+
+=item book
+
+book
+
+=item mono
+
+dvd, good, anime, pcgame, book, doujin
+
+=item rental
+
+rental_dvd, ppr_dvd, set_dvd
+
+=back
+
 =head1 AUTHOR
 
-Syohei Yoshida E<lt>syohex@gmail.comE<gt>
+Syohei YOSHIDA E<lt>syohex@gmail.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2012- Syohei Yoshida
+Copyright 2012- Syohei YOSHIDA
 
 =head1 LICENSE
 
@@ -313,5 +445,7 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =head1 SEE ALSO
+
+Official Guide L<https://affiliate.dmm.com/api/guide/>
 
 =cut

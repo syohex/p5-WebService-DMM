@@ -46,7 +46,7 @@ WebService::DMM::Item is object which stands for DMM item.
 
 =head1 INTERFACES
 
-=head2 ACCESSOR
+=head2 Accessor
 
 =over
 
