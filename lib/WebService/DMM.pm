@@ -185,14 +185,14 @@ sub _parse_responce {
         $param{actresses} = _personal_info($item_node, 'iteminfo/actress');
         $param{directors} = _personal_info($item_node, 'iteminfo/director');
 
-        $param{maker} = _bool_info($item_node, 'iteminfo/maker');
-        $param{label} = _bool_info($item_node, 'iteminfo/label');
+        $param{maker} = _first_name_value($item_node, 'iteminfo/maker');
+        $param{label} = _first_name_value($item_node, 'iteminfo/label');
 
         push @{$self->{items}}, WebService::DMM::Item->new(%param);
     }
 }
 
-sub _bool_info {
+sub _first_name_value {
     my ($node, $path) = @_;
 
     my @nodes = $node->findnodes($path);
