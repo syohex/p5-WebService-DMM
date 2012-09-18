@@ -10,6 +10,7 @@ requires 'XML::LibXML';
 requires 'Class::Accessor::Lite' => '0.05';
 
 test_requires 'Test::More' => '0.98';
+test_requires 'Test::Mock::Guard';
 
 author_tests('xt');
 auto_set_repository();
