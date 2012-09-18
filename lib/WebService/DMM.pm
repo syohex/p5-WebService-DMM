@@ -3,7 +3,267 @@ use strict;
 use warnings;
 use 5.008_001;
 
+use Carp ();
+use URI;
+use POSIX qw/strftime/;
+use Furl;
+use Encode ();
+use XML::LibXML;
+use WebService::DMM::Item;
+
 our $VERSION = '0.01';
+
+sub new {
+    my ($class, %args) = @_;
+
+    for my $param (qw/affiliate_id api_id/) {
+        unless (exists $args{$param}) {
+            Carp::croak("missing mandatory parameter '$param'");
+        }
+    }
+
+    _validate_affiliate_id($args{affiliate_id});
+
+    my $ua = Furl->new(
+        agent   => "WebService-DMM/$VERSION",
+        timeout => 10,
+    );
+
+    bless {
+        ua     => $ua,
+        %args,
+    }, $class;
+}
+
+sub _validate_affiliate_id {
+    my $account = shift;
+
+    unless ($account =~ m{9[0-9]{2}$}) {
+        Carp::croak("Postfix of affiliate_id is '900--999'");
+    }
+
+    return 1;
+}
+
+my %validate_table = (
+    hits   => \&_validate_hits_param,
+    offset => \&_validate_offset_param,
+    sort   => \&_validate_sort_param,
+);
+
+sub search {
+    my ($self, %args) = @_;
+
+    my %param;
+
+    # mandatory parameters
+    $param{affiliate_id} = $self->{affiliate_id};
+    $param{api_id}       = $self->{api_id};
+    $param{operation}    = $args{operation} || 'ItemList';
+    $param{version}      = '1.00';
+    $param{timestamp}    = $args{timestamp} || _format_date();
+    $param{site}         = $args{site};
+
+    # optional parameters
+    for my $p (qw/hits offset sort/) {
+        if ($args{$p}) {
+            $param{$p} = $validate_table{$p}->($args{$p});
+        }
+    }
+
+    if ($args{service}) {
+        @param{'service', 'floor'}
+            = _validate_service_floor(@args{'site', 'service', 'floor'});
+    }
+
+    if ($args{keyword}) {
+        $param{keyword} = _encode_keyword($args{keyword});
+    }
+
+
+    $self->_send_request(%param);
+}
+
+sub _encode_keyword {
+    my $keyword = shift;
+    Encode::encode('euc-jp', $keyword);
+}
+
+sub _validate_sort_param {
+    my $sort = shift;
+    my @sort_values = qw(rank +price -price date review);
+
+    unless (grep {$sort eq $_} @sort_values) {
+        Carp::croak("'sort' parameter should be (@sort_values)");
+    }
+
+    return $sort;
+}
+
+sub _validate_site_param {
+    my $site = shift;
+
+    unless ($site eq 'DMM.co.jp' || $site eq 'DMM.com') {
+        Carp::croak("'site' parameter should be 'DMM.co.jp' or 'DMM.com'");
+    }
+
+    return $site;
+}
+
+sub _validate_hits_param {
+    my $hits = shift;
+
+    unless ($hits >= 1 && $hits <= 100) {
+        Carp::croak("'hits' parameter should be 1 <= n <= 100");
+    }
+
+    return $hits;
+}
+
+sub _format_date {
+    strftime '%Y-%m-%d %T', localtime;
+}
+
+sub _send_request {
+    my ($self, %args)  = @_;
+
+    my $uri = URI->new('http://affiliate-api.dmm.com/');
+    $uri->query_form(%args);
+
+    my $res = $self->{ua}->get( $uri->as_string );
+    unless ($res->is_success) {
+        Carp::croak("Download failed: " . $uri->as_string);
+    }
+
+    $self->_parse_responce( \$res->content );
+    return @{$self->{items}};
+}
+
+sub _parse_responce {
+    my ($self, $content_ref) = @_;
+    my $decoded = _decode_xml_utf8( $content_ref );
+
+    my $dom = XML::LibXML->load_xml(string => $decoded);
+    my @items_nodes = $dom->findnodes('/responce/result/items/item');
+
+    for my $item_node (@items_nodes) {
+        my %param;
+
+        for my $p (qw/content_id product_id URL affiliateURL title/) {
+            $param{$p} = $item_node->findvalue($p);
+        }
+
+        my $image_url;
+        for my $p (qw/list small large/) {
+            $image_url->{$p} = $item_node->findvalue("imageURL/$p");
+        }
+        $param{image} = $image_url;
+
+        $param{sample_images} = [
+            map { $_->textContent } $item_node->findnodes('sampleImageURL/sample_s')
+        ];
+
+        $param{price} = $item_node->findnodes('prices/price')->[0]->textContent();
+
+        $param{keywords} = [
+            map { $_->findvalue('name') } $item_node->findnodes('iteminfo/keyword')
+        ];
+
+        $param{actresses} = _personal_info($item_node, 'iteminfo/actress');
+        $param{directors} = _personal_info($item_node, 'iteminfo/director');
+
+        $param{maker} = _bool_info($item_node, 'iteminfo/maker');
+        $param{label} = _bool_info($item_node, 'iteminfo/label');
+
+        push @{$self->{items}}, WebService::DMM::Item->new(%param);
+    }
+}
+
+sub _bool_info {
+    my ($node, $path) = @_;
+
+    my @nodes = $node->findnodes($path);
+    if (@nodes) {
+        return $nodes[0]->findvalue('name');
+    } else {
+        return;
+    }
+}
+
+sub _personal_info {
+    my ($node, $path) = @_;
+
+    my @persons;
+    my @person_nodes = $node->findnodes($path);
+    for my $person_node (@person_nodes) {
+        my $name = $person_node->findvalue('name');
+        my $id = $person_node->findvalue('id');
+        next unless $id =~ m{^\d+$};
+
+        push @persons, $name;
+    }
+
+    return \@persons;
+}
+
+# parsing XML encoded EUC-jp is difficult.
+sub _decode_xml_utf8 {
+    my $content_ref = shift;
+    $$content_ref =~ s{encoding="euc-jp"}{encoding="utf-8"};
+
+    return Encode::decode('euc-jp', $$content_ref);
+}
+
+sub items {
+    my $self = shift;
+    return @{$self->{items}};
+}
+
+my %service_floor = (
+    'DMM.com' => {
+        nandemo      => [qw/fashion_ladies fashion_mems rental_iroiro/],
+        rental       => [qw/rental_dvd ppr_dvd rental_cd ppr_cd set_dvd set_cd comic/],
+        mono         => [qw/dvd cd book game hobby kaden houseware gourmet/],
+        pcsoft       => [qw/pcgame pcsoft/],
+        digital_book => [qw/comic novel magazine photo audio movie/],
+        monthly      => [qw/toei animate shochikugeino idol cinepara dgc fleague/],
+        digital      => [qw/bandai anime video idol cinema fight/],
+        lod          => [qw/akb48 ske48/],
+    },
+
+    'DMM.co.jp' => {
+        digital => [qw/videoa videoc nikkatsu anime photo/],
+        monthly => [qw/shirouto nikkatsu paradisetv animech dream avstation
+                       playgirl alice crystal hmp waap momotarobb moodyz
+                       prestige jukujo sod mania s1 kmp/],
+        ppm     => [qw/video videoc/],
+        pcgame  => [qw/pcgame/],
+        doujin  => [qw/doujin/],
+        book    => [qw/book/],
+        mono    => [qw/dvd goods anime pcgame book doujin/],
+        rental  => [qw/rental_dvd ppr_dvd set_dvd/],
+    },
+);
+
+sub _validate_service_floor {
+    my ($site, $service, $floor) = @_;
+
+    unless (defined $floor) {
+        Carp::croak("Not specified floor parameter");
+    }
+
+    unless (exists $service_floor{$site}->{$service}) {
+        my @keys = keys %service_floor;
+        Carp::croak("Invalid service '$service': (@keys)");
+    }
+
+    my @floors = @{$service_floor{$site}->{$service}};
+    unless (grep { $floor eq $_ } @floors) {
+        Carp::croak("Invalid floor '$floor'(service $service): (@floors)");
+    }
+
+    return ($service, $floor);
+}
 
 1;
 __END__
@@ -14,15 +274,30 @@ __END__
 
 =head1 NAME
 
-WebService::DMM -
+WebService::DMM - DMM webservice module
 
 =head1 SYNOPSIS
 
   use WebService::DMM;
+  use Config::Pit;
+
+  my $config = pit_get('dmm.co.jp', require => {
+      affiliate_id => 'DMM affiliate ID',
+      api_id       => 'DMM API ID',
+  });
+
+  my $dmm = WebService::DMM->new(
+      affiliate_id => $config->{affiliate_id},
+      api_id       => $config->{api_id},
+  );
+
+  my @items = $dmm->search( %params );
+
 
 =head1 DESCRIPTION
 
-WebService::DMM is
+WebService::DMM is DMM webservice module.
+DMML<http://www.dmm.com> is Japanese shopping site.
 
 =head1 AUTHOR
 
