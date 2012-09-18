@@ -345,7 +345,11 @@ I<%param> optional parameters are:
 
 =item hits :Int = 20
 
+Number of items
+
 =item offset :Int = 1
+
+Number of page
 
 =item sort :Str = "rank"
 
