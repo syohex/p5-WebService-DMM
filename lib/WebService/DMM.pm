@@ -316,6 +316,24 @@ DMML<http://www.dmm.com> is Japanese shopping site.
 
 =head2 Class Methods
 
+=head3 C<< WebService::DMM->new(%args) :WebService::DMM >>
+
+Create and return a new WebService::DMM instance with I<%args>.
+
+I<%args> must have following parameter:
+
+=over
+
+=item affiliate_id
+
+Affiliate ID of DMM. Postfix of affliate_id should be 900-999.
+
+=item api_id
+
+API ID of DMM. Register your account in DMM and you can get API ID.
+
+=back
+
 =head2 Instance Method
 
 =head3 $dmm->search(%param)
