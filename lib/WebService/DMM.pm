@@ -383,7 +383,8 @@ See "SERVICE AND FLOOR" section
 
 =item keyword :Str
 
-keyword should be string(not byte sequence).
+Search keyword. You can use DMM search keyword style.
+Keyword should be string(not byte sequence).
 
 =back
 
