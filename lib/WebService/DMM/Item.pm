@@ -5,7 +5,7 @@ use warnings;
 use Carp ();
 
 use Class::Accessor::Lite (
-    rw => [ qw/content_id product_id URL affiliateURL title price
+    rw => [ qw/content_id product_id URL affiliateURL title price list_price
                date keywords actresses directors author maker label
                jancode isbn stock/ ],
 );
@@ -50,37 +50,39 @@ WebService::DMM::Item is object which stands for DMM item.
 
 =over
 
-=item content_id(:string)
+=item content_id(:String)
 
-=item product_id(:string)
+=item product_id(:String)
 
-=item URL(:string)
+=item URL(:String)
 
-=item affiliateURL(:string)
+=item affiliateURL(:String)
 
-=item title(:string)
+=item title(:String)
 
-=item price(:int)
+=item price(:String)
 
-=item date(:string)
+=item list_price(:Int)
 
-=item keywords(:Array[string])
+=item date(:String)
 
-=item actresses(:Array[string])
+=item keywords(:Array[String])
 
-=item directors(:Array[string])
+=item actresses(:Array[String])
 
-=item author(:string)
+=item directors(:Array[String])
 
-=item maker(:string)
+=item author(:String)
 
-=item labal(:string)
+=item maker(:String)
 
-=item jancode(:string)
+=item labal(:String)
 
-=item isbn(:string)
+=item jancode(:String)
 
-=item stock(:int)
+=item isbn(:String)
+
+=item stock(:Int)
 
 =back
 
