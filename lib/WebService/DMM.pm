@@ -13,6 +13,14 @@ use WebService::DMM::Item;
 
 our $VERSION = '0.01';
 
+my $agent_name = __PACKAGE__ . "/$VERSION";
+our $UserAgent = Furl->new(agent => $agent_name);
+
+sub __ua {
+    $UserAgent ||= Furl->new(agent => $agent_name);
+    $UserAgent;
+}
+
 sub new {
     my ($class, %args) = @_;
 
@@ -24,13 +32,7 @@ sub new {
 
     _validate_affiliate_id($args{affiliate_id});
 
-    my $ua = Furl->new(
-        agent   => "WebService-DMM/$VERSION",
-        timeout => 10,
-    );
-
     bless {
-        ua     => $ua,
         %args,
     }, $class;
 }
@@ -143,7 +145,7 @@ sub _send_request {
     my $uri = URI->new('http://affiliate-api.dmm.com/');
     $uri->query_form(%args);
 
-    my $res = $self->{ua}->get( $uri->as_string );
+    my $res = __ua()->get( $uri->as_string );
     unless ($res->is_success) {
         Carp::croak("Download failed: " . $uri->as_string);
     }
@@ -466,6 +468,12 @@ dvd, good, anime, pcgame, book, doujin
 rental_dvd, ppr_dvd, set_dvd
 
 =back
+
+=head1 CUSTOMIZE USER AGENT
+
+You can specify your own instance of L<Furl> to set $WebService::DMM::UserAgent.
+
+    $WebService::DMM::UserAgent = Furl->new( your_own_paramter );
 
 =head1 AUTHOR
 
