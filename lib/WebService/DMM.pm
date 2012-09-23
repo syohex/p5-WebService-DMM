@@ -74,8 +74,11 @@ sub search {
     }
 
     if ($args{service}) {
-        @param{'service', 'floor'}
+        my ($service, $floor)
             = _validate_service_floor(@args{'site', 'service', 'floor'});
+
+        $param{service} = $service;
+        $param{floor}   = $floor if defined $floor;
     }
 
     if ($args{keyword}) {
@@ -164,7 +167,7 @@ sub _parse_responce {
     for my $item_node (@items_nodes) {
         my %param;
 
-        for my $p (qw/content_id product_id URL affiliateURL title/) {
+        for my $p (qw/content_id product_id URL affiliateURL title date/) {
             $param{$p} = $item_node->findvalue($p);
         }
 
@@ -175,11 +178,11 @@ sub _parse_responce {
         $param{image} = $image_url;
 
         $param{sample_images} = [
-            map { $_->textContent } $item_node->findnodes('sampleImageURL/sample_s')
+            map { $_->textContent } $item_node->findnodes('sampleImageURL/sample_s/image')
         ];
 
         $param{price} = $item_node->findnodes('prices/price')->[0]->textContent();
-        $param{list_price} = _get_or_none($item_node, 'prices/list_price', 'list_price');
+        $param{list_price} = _get_or_none($item_node, 'prices/list_price', 'TEXT');
 
         $param{keywords} = [
             map { $_->findvalue('name') } $item_node->findnodes('iteminfo/keyword')
@@ -188,6 +191,7 @@ sub _parse_responce {
         $param{actresses} = _personal_info($item_node, 'iteminfo/actress');
         $param{directors} = _personal_info($item_node, 'iteminfo/director');
 
+        $param{series} = _get_or_none($item_node, 'iteminfo/series', 'name');
         $param{maker} = _get_or_none($item_node, 'iteminfo/maker', 'name');
         $param{label} = _get_or_none($item_node, 'iteminfo/label', 'name');
 
@@ -200,7 +204,11 @@ sub _get_or_none {
 
     my @nodes = $node->findnodes($path);
     if (@nodes) {
-        return $nodes[0]->findvalue($tag);
+        if ($tag eq 'TEXT') {
+            return $nodes[0]->textContent;
+        } else {
+            return $nodes[0]->findvalue($tag);
+        }
     } else {
         return;
     }
@@ -265,7 +273,7 @@ sub _validate_service_floor {
     my ($site, $service, $floor) = @_;
 
     unless (defined $floor) {
-        Carp::croak("Not specified floor parameter");
+        return ($service, undef);
     }
 
     unless (exists $service_floor{$site}->{$service}) {

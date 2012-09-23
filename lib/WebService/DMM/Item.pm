@@ -6,8 +6,8 @@ use Carp ();
 
 use Class::Accessor::Lite (
     rw => [ qw/content_id product_id URL affiliateURL title price list_price
-               date keywords actresses directors author maker label
-               jancode isbn stock/ ],
+               date keywords actresses directors author maker label sample_images
+               jancode isbn stock series/ ],
 );
 
 sub new {
@@ -67,6 +67,8 @@ WebService::DMM::Item is object which stands for DMM item.
 =item date(:String)
 
 =item keywords(:Array[String])
+
+=item sample_images(:Array[String])
 
 =item actresses(:Array[String])
 
