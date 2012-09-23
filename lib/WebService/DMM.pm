@@ -179,6 +179,7 @@ sub _parse_responce {
         ];
 
         $param{price} = $item_node->findnodes('prices/price')->[0]->textContent();
+        $param{list_price} = _get_or_none($item_node, 'prices/list_price', 'list_price');
 
         $param{keywords} = [
             map { $_->findvalue('name') } $item_node->findnodes('iteminfo/keyword')
@@ -187,19 +188,19 @@ sub _parse_responce {
         $param{actresses} = _personal_info($item_node, 'iteminfo/actress');
         $param{directors} = _personal_info($item_node, 'iteminfo/director');
 
-        $param{maker} = _first_name_value($item_node, 'iteminfo/maker');
-        $param{label} = _first_name_value($item_node, 'iteminfo/label');
+        $param{maker} = _get_or_none($item_node, 'iteminfo/maker', 'name');
+        $param{label} = _get_or_none($item_node, 'iteminfo/label', 'name');
 
         push @{$self->{items}}, WebService::DMM::Item->new(%param);
     }
 }
 
-sub _first_name_value {
-    my ($node, $path) = @_;
+sub _get_or_none {
+    my ($node, $path, $tag) = @_;
 
     my @nodes = $node->findnodes($path);
     if (@nodes) {
-        return $nodes[0]->findvalue('name');
+        return $nodes[0]->findvalue($tag);
     } else {
         return;
     }
