@@ -20,6 +20,8 @@ subtest 'constructor' => sub {
         label        => 'deeps',
         jancode      => '111',
         stock        => '100',
+        price        => 1000,
+        list_price   => 2000,
     );
 
     ok $item, 'constructor';
@@ -27,7 +29,7 @@ subtest 'constructor' => sub {
 };
 
 subtest 'accessors' => sub {
-    my @accessors = qw/content_id product_id URL affiliateURL title
+    my @accessors = qw/content_id product_id URL affiliateURL title price list_price
                        date keywords actresses directors author maker label
                        jancode isbn stock/;
 
