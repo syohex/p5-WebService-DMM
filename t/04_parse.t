@@ -36,8 +36,8 @@ subtest 'actual parse response', => sub {
     is $item->content_id, 111, 'content id';
     is $item->product_id, 112, 'product id';
     is $item->title, 'test_title', 'title';
-    is $item->URL, 'http://example.com/', 'URL';
-    is $item->affiliateURL, 'http://example.com/test-999', 'affiliate url';
+    is $item->url, 'http://example.com/', 'URL';
+    is $item->affiliate_url, 'http://example.com/test-999', 'affiliate url';
     is $item->image('list'), 'http://pics.dmm.co.jp/testpt.jpg', 'image(list)';
     is $item->image('small'), 'http://pics.dmm.co.jp/testps.jpg', 'image(small)';
     is $item->image('large'), 'http://pics.dmm.co.jp/testpl.jpg', 'image(large)';

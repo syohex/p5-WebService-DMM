@@ -29,7 +29,7 @@ subtest 'constructor' => sub {
 };
 
 subtest 'accessors' => sub {
-    my @accessors = qw/content_id product_id URL affiliateURL title price list_price
+    my @accessors = qw/content_id product_id url affiliate_url title price list_price
                        date keywords actresses directors author maker label
                        jancode isbn stock/;
 
