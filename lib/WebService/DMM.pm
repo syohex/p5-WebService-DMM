@@ -11,7 +11,7 @@ use Encode ();
 use XML::LibXML;
 use WebService::DMM::Item;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 my $agent_name = __PACKAGE__ . "/$VERSION";
 our $UserAgent = Furl->new(agent => $agent_name);
