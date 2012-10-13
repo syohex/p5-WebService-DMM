@@ -61,3 +61,8 @@ lod
 nandemo
 ppm
 API
+isbn
+jancode
+labal
+url
+Hiragana
