@@ -5,37 +5,63 @@ use Test::More;
 use WebService::DMM::Item;
 
 subtest 'constructor' => sub {
-    my $item = WebService::DMM::Item->new(
-        content_id   => 10,
-        product_id   => 20,
-        URI          => 'http://example.com/',
-        affiliateURL => 'http://example.com/test-999',
-        title        => 'title',
-        date         => '2012/09/10',
-        keywords     => [qw/apple melon/],
-        actresses    => [qw/alice kate/],
-        directors    => [qw/bob/],
-        author       => [qw/deen/],
-        maker        => 's1',
-        label        => 'deeps',
-        jancode      => '111',
-        stock        => '100',
-        price        => 1000,
-        list_price   => 2000,
-    );
+    my $item = WebService::DMM::Item->new();
 
     ok $item, 'constructor';
     isa_ok $item, 'WebService::DMM::Item';
 };
 
 subtest 'accessors' => sub {
-    my @accessors = qw/content_id product_id url affiliate_url title price list_price
-                       date keywords actresses directors author maker label
-                       jancode isbn stock/;
+    my @accessors = qw/service_name floor_name category_name
+                       content_id product_id title
+                       actors directors authors fighters
+                       price price_all list_price deliveries
+                       date keywords maker label sample_images
+                       jancode isbn stock series
+                      /;
 
-    my $item = WebService::DMM::Item->new;
+    my %args = (
+        service_name  => 'test_service',
+        floor_name    => 'test_floor',
+        category_name => 'test_category',
+        content_id    => 10,
+        product_id    => 20,
+        URI           => 'http://example.com/',
+        affiliateURL  => 'http://example.com/test-999',
+        title         => 'title',
+        date          => '2012/09/10',
+        keywords      => [qw/apple melon/],
+        actors        => [qw/alice kate/],
+        directors     => [qw/bob/],
+        authors       => [qw/deen/],
+        fighters      => [qw/foo bar/],
+        maker         => 's1',
+        label         => 'deeps',
+        jancode       => '111',
+        isbn          => '200',
+        stock         => '100',
+        price         => 1000,
+        price_all     => 1000,
+        list_price    => 2000,
+        deliveries    => [{type=>'a', price=>'b'}],
+        sample_images => [qw/a.jpg b.jpg/],
+        series        => 'cafe',
+    );
+
+    my $item = WebService::DMM::Item->new(%args);
     for my $accessor (@accessors) {
         can_ok $item, $accessor;
+    }
+
+    for my $accessor (@accessors) {
+        my $got = $item->$accessor;
+        my $expexted = $args{$accessor};
+
+        if (ref $got) {
+            is_deeply $got, $expexted, "'$accessor' member";
+        } else {
+            is $got, $expexted, "'$accessor' member"
+        }
     }
 };
 

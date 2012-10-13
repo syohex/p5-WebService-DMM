@@ -22,12 +22,13 @@ subtest 'actual parse response', => sub {
         api_id       => 'test_api_id',
     );
 
-    my @items = $dmm->search(
+    my $res = $dmm->search(
         site    => 'DMM.co.jp',
         service => 'digital',
         keyword => 'test_key',
     );
 
+    my @items = @{$res->items};
     is((scalar @items), 1, "return items");
 
     my $item = shift @items;
@@ -49,11 +50,33 @@ subtest 'actual parse response', => sub {
     is $item->list_price, '1000', 'list price';
     is $item->date, '2012-02-07 10:00:43', 'date';
     is_deeply $item->keywords, ['key1', 'key2'], 'keywords';
-    is $item->series, 'test_series', 'series';
-    is $item->maker, 'test_maker', 'maker';
-    is_deeply $item->actresses, ['test_actress1', 'test_actress2'], 'actresses';
-    is_deeply $item->directors, ['test_director'], 'director';
-    is $item->label, 'test_label', 'label';
+
+    isa_ok $item->series, 'WebService::DMM::Series';
+    is $item->series->name, 'test_series', 'series name';
+    is $item->series->id, 3, 'series id';
+
+    isa_ok $item->maker, 'WebService::DMM::Maker';
+    is $item->maker->name, 'test_maker', 'maker name';
+    is $item->maker->id, '4', 'maker id';
+
+    my @actors = @{$item->actors};
+    isa_ok $actors[0], 'WebService::DMM::Person::Actor';
+    is $actors[0]->name, 'test_actress1', 'actress name1';
+    is $actors[0]->ruby, 'test_actress1_ruby', 'actress ruby2';
+    is $actors[0]->id, 10, 'actress id1';
+    is $actors[1]->name, 'test_actress2', 'actress name2';
+    is $actors[1]->ruby, 'test_actress2_ruby', 'actress ruby2';
+    is $actors[1]->id, 20, 'actress id2';
+
+    my @directors = @{$item->directors};
+    isa_ok $directors[0], 'WebService::DMM::Person::Director';
+    is $directors[0]->name, 'test_director', 'director name';
+    is $directors[0]->ruby, 'test_director_ruby', 'director ruby';
+    is $directors[0]->id, 30, 'director id';
+
+    isa_ok $item->label, 'WebService::DMM::Label';
+    is $item->label->name, 'test_label', 'label name';
+    is $item->label->id, 40, 'label id';
 };
 
 done_testing;
@@ -125,7 +148,7 @@ __DATA__
             <id>10</id>
           </actress>
           <actress>
-            <name>test actress1</name>
+            <name>test_actress1_ruby</name>
             <id>10_ruby</id>
           </actress>
           <actress>
@@ -137,7 +160,7 @@ __DATA__
             <id>20</id>
           </actress>
           <actress>
-            <name>test actress2</name>
+            <name>test_actress2_ruby</name>
             <id>20_ruby</id>
           </actress>
           <actress>
@@ -149,7 +172,7 @@ __DATA__
             <id>30</id>
           </director>
           <director>
-            <name>test director</name>
+            <name>test_director_ruby</name>
             <id>30_ruby</id>
           </director>
           <label>
