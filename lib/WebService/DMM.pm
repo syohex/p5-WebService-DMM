@@ -9,7 +9,18 @@ use POSIX qw/strftime/;
 use Furl;
 use Encode ();
 use XML::LibXML;
+
 use WebService::DMM::Item;
+use WebService::DMM::Response;
+use WebService::DMM::Person::Actor;
+use WebService::DMM::Person::Author;
+use WebService::DMM::Person::Director;
+use WebService::DMM::Delivery;
+use WebService::DMM::Label;
+use WebService::DMM::Maker;
+use WebService::DMM::Series;
+
+use utf8;
 
 our $VERSION = '0.02';
 
@@ -153,19 +164,39 @@ sub _send_request {
         Carp::croak("Download failed: " . $uri->as_string);
     }
 
-    $self->_parse_responce( \$res->content );
-    return @{$self->{items}};
+    $self->{_site} = $args{site}; # need for parsing actor information
+
+    my $response = $self->_parse_response( \$res->content );
+    return $response;
 }
 
-sub _parse_responce {
+sub _parse_response {
     my ($self, $content_ref) = @_;
     my $decoded = _decode_xml_utf8( $content_ref );
 
     my $dom = XML::LibXML->load_xml(string => $decoded);
-    my @items_nodes = $dom->findnodes('/responce/result/items/item');
 
+    my $res = WebService::DMM::Response->new();
+    for my $p (qw/result_count total_count first_position/) {
+        $res->$p( _get_or_none($dom, "/responce/result/$p", 'TEXT') );
+    }
+
+    $res->items( $self->_parse_items($dom) );
+    $res->{content} = $decoded;
+    return $res;
+}
+
+sub _parse_items {
+    my ($self, $dom) = @_;
+
+    my @items;
+    my @items_nodes = $dom->findnodes('/responce/result/items/item');
     for my $item_node (@items_nodes) {
         my %param;
+
+        for my $p (qw/service_name floor_name category_name/) {
+            $param{$p} = _get_or_none($item_node, "$p", 'TEXT');
+        }
 
         for my $p (qw/content_id product_id URL affiliateURL title date/) {
             $param{$p} = $item_node->findvalue($p);
@@ -181,53 +212,176 @@ sub _parse_responce {
             map { $_->textContent } $item_node->findnodes('sampleImageURL/sample_s/image')
         ];
 
-        $param{price} = $item_node->findnodes('prices/price')->[0]->textContent();
-        $param{list_price} = _get_or_none($item_node, 'prices/list_price', 'TEXT');
+        ## item/prices/*
+        for my $p (qw/price price_all list_price/) {
+            $param{$p} = _get_or_none($item_node, "prices/$p", 'TEXT');
+        }
 
+        ## item/prices/deriveries/*
+        $param{deliveries} = _delivery_info($item_node, 'iteminfo/prices/deliveries');
+
+        ## item/iteminfo
         $param{keywords} = [
             map { $_->findvalue('name') } $item_node->findnodes('iteminfo/keyword')
         ];
 
-        $param{actresses} = _personal_info($item_node, 'iteminfo/actress');
-        $param{directors} = _personal_info($item_node, 'iteminfo/director');
+        my ($actor_path, $node_num);
+        if ($self->{_site} eq 'DMM.co.jp') {
+            $actor_path = 'iteminfo/actress';
+            $node_num   = 3; # actress node has another information
+        } else {
+            $actor_path = 'iteminfo/actor';
+            $node_num   = 2;
+        }
+        $param{actors} = _personal_info('Actor', $item_node, $actor_path, $node_num);
 
-        $param{series} = _get_or_none($item_node, 'iteminfo/series', 'name');
-        $param{maker} = _get_or_none($item_node, 'iteminfo/maker', 'name');
-        $param{label} = _get_or_none($item_node, 'iteminfo/label', 'name');
+        for my $p (qw/author director fighter/) {
+            my $class = ucfirst $p;
+            my $key   = $p . 's';
+            $param{$key} = _personal_info($class, $item_node, "iteminfo/$p", 2);
+        }
 
-        push @{$self->{items}}, WebService::DMM::Item->new(%param);
+        for my $p (qw/series maker label/) {
+            my $class = 'WebService::DMM::' . ucfirst $p;
+            my %params = _get_multi_or_none($item_node, "iteminfo/$p",
+                                            'name', 'id');
+
+            $param{$p} = $class->new(%params);
+        }
+
+        for my $p (qw/jancode maker_product isbn stock/) {
+            $param{$p} = _get_or_none($item_node, "iteminfo/$p", 'TEXT');
+        }
+
+        push @items, WebService::DMM::Item->new(%param);
     }
+
+    return \@items;
 }
 
 sub _get_or_none {
     my ($node, $path, $tag) = @_;
 
     my @nodes = $node->findnodes($path);
-    if (@nodes) {
+    return unless @nodes;
+
+    if ($tag eq 'TEXT') {
+        return $nodes[0]->textContent;
+    } else {
+        return $nodes[0]->findvalue($tag);
+    }
+
+    return;
+}
+
+sub _get_multi_or_none {
+    my ($node, $path, @tags) = @_;
+
+    my @nodes = $node->findnodes($path);
+    return unless @nodes;
+
+    my %values;
+    for my $tag (@tags) {
         if ($tag eq 'TEXT') {
-            return $nodes[0]->textContent;
+            $values{$tag} = $nodes[0]->textContent;
         } else {
-            return $nodes[0]->findvalue($tag);
+            $values{$tag} = $nodes[0]->findvalue($tag)
         }
+    }
+
+    if (%values) {
+        return %values;
     } else {
         return;
     }
 }
 
-sub _personal_info {
+sub _delivery_info {
     my ($node, $path) = @_;
+
+    my @deliveries;
+    my @delivery_nodes = $node->findnodes($path);
+
+    for my $node (@delivery_nodes) {
+        my $type  = $node->findvalue('type');
+        my $price = $node->findvalue('price');
+
+        push @deliveries, WebService::DMM::Delivery->new(
+            type  => $type,
+            price => $price,
+        );
+    }
+
+    my $retval = scalar @deliveries ? \@deliveries : [];
+    return $retval;
+}
+
+sub _personal_info {
+    my ($type, $node, $path, $node_num) = @_;
+
+    my $class = 'WebService::DMM::Person::' . $type;
 
     my @persons;
     my @person_nodes = $node->findnodes($path);
-    for my $person_node (@person_nodes) {
-        my $name = $person_node->findvalue('name');
-        my $id = $person_node->findvalue('id');
-        next unless $id =~ m{^\d+$};
+    while (my ($name_node, $ruby_node) = splice @person_nodes, 0, $node_num) {
+        my $name_str = $name_node->findvalue('name');
+        my $id       = $name_node->findvalue('id');
+        my $ruby_str = $ruby_node->findvalue('name');
+        my $ruby_id  = $ruby_node->findvalue('id');
 
-        push @persons, $name;
+        unless ($ruby_id eq "${id}_ruby") {
+            Carp::croak("Internal Error(ruby_id=$ruby_id, id=${id})");
+        }
+
+        my ($name, $name_aliases) = _separate_name($name_str);
+        my ($ruby, $ruby_aliases) = _separate_name($ruby_str);
+
+        my $defined_num = scalar (grep { defined $_} ($name_aliases, $ruby_aliases));
+        if ($defined_num == 1) {
+            Carp::croak("Internal Parsing error");
+        }
+
+        my %param = ( id => $id, name => $name, ruby => $ruby );
+
+        if (defined $name_aliases && defined $ruby_aliases) {
+            unless (scalar @{$name_aliases} == scalar @{$ruby_aliases}) {
+                Carp::croak("Internal Parsing error");
+            }
+
+            my @aliases;
+            my $length = scalar @{$name_aliases};
+            for my $i (0..($length - 1)) {
+                push @aliases, {
+                    name => $name_aliases->[$i],
+                    ruby => $ruby_aliases->[$i],
+                },
+            }
+
+            $param{aliases} = \@aliases;
+        }
+
+        push @persons, $class->new( %param );
     }
 
-    return \@persons;
+    my $retval = scalar @persons ? \@persons : [];
+    return $retval;
+}
+
+sub _separate_name {
+    my $name_str = shift;
+
+    if ($name_str =~ m{(.+?)[(（](.+?)[)）]}) {
+        my ($name, $aliases_str) = ($1, $2);
+
+        my @aliases;
+        if ($aliases_str) {
+            @aliases = split /[,、]/, $aliases_str;
+        }
+
+        return ($name, \@aliases);
+    } else {
+        return ($name_str);
+    }
 }
 
 # parsing XML encoded EUC-jp is difficult.

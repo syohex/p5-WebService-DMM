@@ -5,18 +5,14 @@ use warnings;
 use Carp ();
 
 use Class::Accessor::Lite (
-    rw => [ qw/content_id product_id title price list_price
-               date keywords actresses directors author maker label sample_images
+    new => 1,
+    rw => [ qw/service_name floor_name category_name
+               content_id product_id title
+               actors directors authors fighters
+               price price_all list_price deliveries
+               date keywords maker label sample_images
                jancode isbn stock series/ ],
 );
-
-sub new {
-    my ($class, %args) = @_;
-
-    bless {
-        %args,
-    }, $class;
-}
 
 sub image {
     my ($self, $type) = @_;
@@ -53,41 +49,55 @@ WebService::DMM::Item is object which stands for DMM item.
 
 =over
 
-=item content_id(:String)
+=item service_name :String
 
-=item product_id(:String)
+=item floor_name : String
 
-=item url(:String)
+=item category_name : String
 
-=item affiliate_url(:String)
+=item content_id : String
 
-=item title(:String)
+=item product_id : String
 
-=item price(:String)
+=item title : String
 
-=item list_price(:Int)
+=item actors : ArrayRef[WebService::DMM::Person::Actor]
 
-=item date(:String)
+=item directors : ArrayRef[WebService::DMM::Person::Director]
 
-=item keywords(:Array[String])
+=item authors : ArrayRef[WebService::DMM::Person::Actor]
 
-=item sample_images(:Array[String])
+=item fighter : ArrayRef[WebService::DMM::Person::Fighter]
 
-=item actresses(:Array[String])
+=item price : String
 
-=item directors(:Array[String])
+=item price_all : Int
 
-=item author(:String)
+=item list_price :Int
 
-=item maker(:String)
+=item deliveries : ArrayRef[WebService::DMM::Delivery]
 
-=item labal(:String)
+=item date : String
 
-=item jancode(:String)
+=item keywords : ArrayRef[String]
 
-=item isbn(:String)
+=item maker : String
 
-=item stock(:Int)
+=item labal : String
+
+=item sample_images : ArrayRef[String]
+
+=item jancode : String
+
+=item isbn : String
+
+=item stock : Int
+
+=item series : String
+
+=item url : String
+
+=item affiliate_url :String
 
 =back
 
