@@ -5,6 +5,7 @@ use Module::Install::Repository;
 name 'WebService-DMM';
 all_from 'lib/WebService/DMM.pm';
 
+requires 'parent';
 requires 'URI';
 requires 'Furl' => '0.41';
 requires 'XML::LibXML';
