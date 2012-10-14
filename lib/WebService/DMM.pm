@@ -472,8 +472,11 @@ WebService::DMM - DMM webservice module
       api_id       => $config->{api_id},
   );
 
-  my @items = $dmm->search( %params );
+  my $response = $dmm->search( %params );
 
+  for my $item (@{$response->items}) {
+      ....
+  }
 
 =head1 DESCRIPTION
 
