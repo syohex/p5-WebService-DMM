@@ -25,6 +25,7 @@ my $res = $dmm->search(
     keyword => 'rio',
     hits    => 10,
 );
+die "Failed to request" unless $res->is_success;
 
 my $index = 1;
 for my $item (@{$res->items}) {
