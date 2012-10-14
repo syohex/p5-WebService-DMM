@@ -11,7 +11,6 @@ use Class::Accessor::Lite (
 
 __END__
 
-
 =encoding utf-8
 
 =for stopwords
