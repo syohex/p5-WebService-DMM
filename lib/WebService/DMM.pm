@@ -644,6 +644,10 @@ You can specify your own instance of L<Furl> to set $WebService::DMM::UserAgent.
 
     $WebService::DMM::UserAgent = Furl->new( your_own_paramter );
 
+=head1 EXAMPLES
+
+There are many examples in the "eg/" directory in this distribution.
+
 =head1 AUTHOR
 
 Syohei YOSHIDA E<lt>syohex@gmail.comE<gt>
