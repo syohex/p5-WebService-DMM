@@ -15,6 +15,7 @@ use WebService::DMM::Response;
 use WebService::DMM::Person::Actor;
 use WebService::DMM::Person::Author;
 use WebService::DMM::Person::Director;
+use WebService::DMM::Person::Fighter;
 use WebService::DMM::Delivery;
 use WebService::DMM::Label;
 use WebService::DMM::Maker;
