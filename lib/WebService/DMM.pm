@@ -178,6 +178,15 @@ sub _parse_response {
     my $dom = XML::LibXML->load_xml(string => $decoded);
 
     my $res = WebService::DMM::Response->new();
+    my $message = _get_or_none($dom, "/responce/result/message", 'TEXT');
+    if (defined $message) {
+        my $cause = _get_or_none($dom, "/responce/result/errors/error/value",
+                                 'TEXT');
+        $res->cause($cause);
+        $res->is_success(0);
+    }
+    $res->is_success(1);
+
     for my $p (qw/result_count total_count first_position/) {
         $res->$p( _get_or_none($dom, "/responce/result/$p", 'TEXT') );
     }
@@ -473,6 +482,7 @@ WebService::DMM - DMM webservice module
   );
 
   my $response = $dmm->search( %params );
+  die "Failed to request" unless $response->is_success;
 
   for my $item (@{$response->items}) {
       ....
