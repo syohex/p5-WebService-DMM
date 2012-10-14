@@ -4,7 +4,8 @@ use warnings;
 
 use Class::Accessor::Lite (
     new => 1,
-    rw  => [ qw/result_count total_count first_position items/ ],
+    rw  => [ qw/result_count total_count first_position items
+                is_success cause/ ],
 );
 
 1;
@@ -38,6 +39,12 @@ WebService::DMM::Response is
 =item first_position : Int
 
 =item items : Int
+
+=item is_success : Bool
+
+=item cause : String
+
+Cause of failing to request Web API,
 
 =back
 
