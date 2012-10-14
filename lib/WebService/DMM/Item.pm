@@ -6,7 +6,7 @@ use Carp ();
 
 use Class::Accessor::Lite (
     new => 1,
-    rw => [ qw/service_name floor_name category_name
+    ro => [ qw/service_name floor_name category_name
                content_id product_id title
                actors directors authors fighters
                price price_all list_price deliveries

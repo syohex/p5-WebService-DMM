@@ -6,7 +6,7 @@ use parent qw/WebService::DMM::Person/;
 
 use Class::Accessor::Lite (
     new => 1,
-    rw  => [qw/aliases/],
+    ro  => [qw/aliases/],
 );
 
 1;

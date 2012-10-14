@@ -4,7 +4,7 @@ use warnings;
 
 use Class::Accessor::Lite (
     new => 1,
-    rw  => [ qw/result_count total_count first_position items / ],
+    rw  => [ qw/result_count total_count first_position items/ ],
 );
 
 1;

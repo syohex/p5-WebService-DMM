@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 use Class::Accessor::Lite (
-    rw => [qw/id name ruby/],
+    ro => [qw/id name ruby/],
 );
 
 1;
