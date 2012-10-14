@@ -14,3 +14,4 @@
 \.shipit
 \.bs$
 MYMETA
+^README.pod$
