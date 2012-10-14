@@ -1,5 +1,8 @@
 Revision history for Perl extension WebService::DMM
 
+0.04  2012-10-14
+        - Fix that actress alias has no ruby
+
 0.03  2012-10-14
       [INCOMPATIBLE CHANGES]
         - Fix for not working DMM.com

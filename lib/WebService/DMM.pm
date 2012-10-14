@@ -346,24 +346,16 @@ sub _personal_info {
         my ($name, $name_aliases) = _separate_name($name_str);
         my ($ruby, $ruby_aliases) = _separate_name($ruby_str);
 
-        my $defined_num = scalar (grep { defined $_} ($name_aliases, $ruby_aliases));
-        if ($path =~ m{actress} && $defined_num == 1) {
-            Carp::croak("Internal error(Not found alias ruby)");
-        }
-
         my %param = ( id => $id, name => $name, ruby => $ruby );
 
-        if (defined $name_aliases && defined $ruby_aliases) {
-            unless (scalar @{$name_aliases} == scalar @{$ruby_aliases}) {
-                Carp::croak("Internal Parsing error");
-            }
-
+        if (defined $name_aliases) {
             my @aliases;
             my $length = scalar @{$name_aliases};
             for my $i (0..($length - 1)) {
+                my $ruby = defined $ruby_aliases->[$i] ? $ruby_aliases->[$i] : '';
                 push @aliases, {
                     name => $name_aliases->[$i],
-                    ruby => $ruby_aliases->[$i],
+                    ruby => $ruby,
                 },
             }
 
