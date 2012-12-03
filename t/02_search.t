@@ -39,6 +39,11 @@ subtest 'invalid parameter' => sub {
         $dmm->search( site => 'DMM.com', offset => -1 );
     };
     like $@, qr/should be positive number/, 'invalid offset parameter';
+
+    eval {
+        $dmm->search( site => 'DMM.com', version => '0' );
+    };
+    like $@, qr/Invalid version '0'/, 'invalid version number';
 };
 
 subtest 'service and floor at DMM.com' => sub {
