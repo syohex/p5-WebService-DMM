@@ -60,7 +60,6 @@ sub _validate_affiliate_id {
 }
 
 my %validate_table = (
-    version => \&_validate_version_param,
     hits    => \&_validate_hits_param,
     offset  => \&_validate_offset_param,
     sort    => \&_validate_sort_param,
@@ -77,7 +76,7 @@ sub search {
     $param{affiliate_id} = $self->{affiliate_id};
     $param{api_id}       = $self->{api_id};
     $param{operation}    = $args{operation} || 'ItemList';
-    $param{version}      = $args{version} || '1.00';
+    $param{version}      = _validate_version_param($args{version});
     $param{timestamp}    = $args{timestamp} || _format_date();
     $param{site}         = _validate_site_param($args{site});
 
@@ -119,6 +118,10 @@ sub _encode_keyword {
 
 sub _validate_version_param {
     my $version = shift;
+
+    unless (defined $version) {
+        return '2.00';
+    }
 
     my @supported = qw/2.00 1.00/;
     unless (grep { $version eq $_ } @supported) {
