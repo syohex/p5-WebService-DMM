@@ -83,7 +83,7 @@ done_testing;
 
 __DATA__
 <?xml version="1.0" encoding="euc-jp"?>
-<responce>
+<response>
   <request>
     <parameters>
       <parameter name="api_id" value="test_api_id" />
@@ -183,4 +183,4 @@ __DATA__
       </item>
     </items>
   </result>
-</responce>
+</response>

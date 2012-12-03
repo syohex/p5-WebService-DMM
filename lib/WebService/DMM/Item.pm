@@ -25,7 +25,9 @@ sub image {
 }
 
 sub url { $_[0]->{URL}; }
+sub url_sp { $_[0]->{URLsp} }
 sub affiliate_url { $_[0]->{affiliateURL}; }
+sub affiliate_url_sp { $_[0]->{affiliateURLsp} }
 
 1;
 
@@ -97,7 +99,11 @@ WebService::DMM::Item is object which stands for DMM item.
 
 =item url : String
 
+=item url_sp :String
+
 =item affiliate_url :String
+
+=item affiliate_url_sp :String
 
 =back
 
