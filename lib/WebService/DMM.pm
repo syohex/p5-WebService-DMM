@@ -60,10 +60,13 @@ sub _validate_affiliate_id {
 }
 
 my %validate_table = (
-    hits   => \&_validate_hits_param,
-    offset => \&_validate_offset_param,
-    sort   => \&_validate_sort_param,
+    version => \&_validate_version_param,
+    hits    => \&_validate_hits_param,
+    offset  => \&_validate_offset_param,
+    sort    => \&_validate_sort_param,
 );
+
+my $ROOT_NODE;
 
 sub search {
     my ($self, %args) = @_;
@@ -74,7 +77,7 @@ sub search {
     $param{affiliate_id} = $self->{affiliate_id};
     $param{api_id}       = $self->{api_id};
     $param{operation}    = $args{operation} || 'ItemList';
-    $param{version}      = '1.00';
+    $param{version}      = $args{version} || '1.00';
     $param{timestamp}    = $args{timestamp} || _format_date();
     $param{site}         = _validate_site_param($args{site});
 
@@ -97,12 +100,32 @@ sub search {
         $param{keyword} = _encode_keyword($args{keyword});
     }
 
+    _set_root_node_name($param{version});
+
     $self->_send_request(%param);
+}
+
+sub _set_root_node_name {
+    my $version = shift;
+
+    # API 1.00 mistake spelling 'response'
+    $ROOT_NODE = $version eq '1.00' ? 'responce' : 'response';
 }
 
 sub _encode_keyword {
     my $keyword = shift;
     Encode::encode('euc-jp', $keyword);
+}
+
+sub _validate_version_param {
+    my $version = shift;
+
+    my @supported = qw/2.00 1.00/;
+    unless (grep { $version eq $_ } @supported) {
+        Carp::croak("Invalid version '$version'");
+    }
+
+    return $version;
 }
 
 sub _validate_sort_param {
@@ -178,9 +201,9 @@ sub _parse_response {
     my $dom = XML::LibXML->load_xml(string => $decoded);
 
     my $res = WebService::DMM::Response->new();
-    my $message = _get_or_none($dom, "/responce/result/message", 'TEXT');
+    my $message = _get_or_none($dom, "/$ROOT_NODE/result/message", 'TEXT');
     if (defined $message) {
-        my $cause = _get_or_none($dom, "/responce/result/errors/error/value",
+        my $cause = _get_or_none($dom, "/$ROOT_NODE/result/errors/error/value",
                                  'TEXT');
         $res->cause($cause);
         $res->is_success(0);
@@ -188,7 +211,7 @@ sub _parse_response {
     $res->is_success(1);
 
     for my $p (qw/result_count total_count first_position/) {
-        $res->$p( _get_or_none($dom, "/responce/result/$p", 'TEXT') );
+        $res->$p( _get_or_none($dom, "/$ROOT_NODE/result/$p", 'TEXT') );
     }
 
     $res->items( $self->_parse_items($dom) );
@@ -200,7 +223,7 @@ sub _parse_items {
     my ($self, $dom) = @_;
 
     my @items;
-    my @items_nodes = $dom->findnodes('/responce/result/items/item');
+    my @items_nodes = $dom->findnodes("/$ROOT_NODE/result/items/item");
     for my $item_node (@items_nodes) {
         my %param;
 
@@ -210,6 +233,11 @@ sub _parse_items {
 
         for my $p (qw/content_id product_id URL affiliateURL title date/) {
             $param{$p} = $item_node->findvalue($p);
+        }
+
+        # for Smart Phone
+        for my $p (qw/URLsp affiliateURLsp/) {
+            $param{$p} = _get_or_none($item_node, $p, 'TEXT');
         }
 
         my $image_url;
@@ -517,7 +545,9 @@ I<%params> mandatory parameters are:
 
 =item operation :Str = "ItemList"
 
-=item version :Str = "1.00"
+=item version :Str = "2.00"
+
+Version should be '1.00' or '2.00'.
 
 =item timestamp :Str = current time
 

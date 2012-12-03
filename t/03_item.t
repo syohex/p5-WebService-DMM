@@ -26,8 +26,10 @@ subtest 'accessors' => sub {
         category_name => 'test_category',
         content_id    => 10,
         product_id    => 20,
-        URI           => 'http://example.com/',
+        URL           => 'http://example.com/',
+        URLsp         => 'http://example.com/',
         affiliateURL  => 'http://example.com/test-999',
+        affiliateURLsp => 'http://example.com/test-999',
         title         => 'title',
         date          => '2012/09/10',
         keywords      => [qw/apple melon/],
@@ -48,14 +50,19 @@ subtest 'accessors' => sub {
         series        => 'cafe',
     );
 
+    my %aliases = (
+        url => 'URL', url_sp => 'URLsp', affiliate_url => 'affiliateURL',
+        affiliate_url_sp => 'affiliateURLsp',
+    );
+
     my $item = WebService::DMM::Item->new(%args);
-    for my $accessor (@accessors) {
+    for my $accessor (@accessors, keys %aliases) {
         can_ok $item, $accessor;
     }
 
-    for my $accessor (@accessors) {
+    for my $accessor (@accessors, keys %aliases) {
         my $got = $item->$accessor;
-        my $expexted = $args{$accessor};
+        my $expexted = $args{$accessor} || $args{ $aliases{$accessor} };
 
         if (ref $got) {
             is_deeply $got, $expexted, "'$accessor' member";
