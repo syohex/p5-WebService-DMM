@@ -23,7 +23,7 @@ use WebService::DMM::Series;
 
 use utf8;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 my $agent_name = __PACKAGE__ . "/$VERSION";
 our $UserAgent = Furl->new(agent => $agent_name);
