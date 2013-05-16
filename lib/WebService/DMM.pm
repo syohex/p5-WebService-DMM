@@ -191,10 +191,16 @@ sub _send_request {
         Carp::croak("Download failed: " . $uri->as_string);
     }
 
+    $self->{_res} = $res;
     $self->{_site} = $args{site}; # need for parsing actor information
 
     my $response = $self->_parse_response( \$res->content );
     return $response;
+}
+
+sub last_response {
+    my $self = shift;
+    return $self->{_res};
 }
 
 sub _parse_response {
@@ -593,6 +599,10 @@ Search keyword. You can use DMM search keyword style.
 Keyword should be string(not byte sequence).
 
 =back
+
+=head3 $dmm->last_response()
+
+Return last response which is a Furl::Response instance.
 
 =head1 SERVICE AND FLOOR
 
