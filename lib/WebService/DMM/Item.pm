@@ -85,7 +85,7 @@ WebService::DMM::Item is object which stands for DMM item.
 
 =item maker : String
 
-=item labal : String
+=item label : String
 
 =item sample_images : ArrayRef[String]
 
