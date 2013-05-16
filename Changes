@@ -1,5 +1,7 @@
 Revision history for Perl extension WebService::DMM
 
+{{$NEXT}}
+
 0.05  2012-12-03
         - Support API version 2.00
 
