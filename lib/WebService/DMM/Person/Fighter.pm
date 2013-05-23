@@ -46,7 +46,7 @@ Syohei YOSHIDA E<lt>syohex@gmail.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2012 - Syohei YOSHIDA
+Copyright 2013 - Syohei YOSHIDA
 
 =head1 SEE ALSO
 
