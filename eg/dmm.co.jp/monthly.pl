@@ -29,6 +29,6 @@ my $res = $dmm->search(
 
 my $index = 1;
 for my $item (@{$res->items}) {
-    printf "[%2d] %s(%s)\n", $index, $item->title, $item->maker;
+    printf "[%2d] %s(%s)\n", $index, $item->title, $item->maker->name;
     $index++;
 }
