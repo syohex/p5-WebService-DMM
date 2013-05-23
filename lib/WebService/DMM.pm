@@ -28,6 +28,9 @@ our $VERSION = '0.06';
 my $agent_name = __PACKAGE__ . "/$VERSION";
 our $UserAgent = Furl->new(agent => $agent_name);
 
+my $ROOT_NODE;
+my @supported_api_versions = ('2.00', '1.00');
+
 sub __ua {
     $UserAgent ||= Furl->new(agent => $agent_name);
     $UserAgent;
@@ -65,8 +68,6 @@ my %validate_table = (
     sort    => \&_validate_sort_param,
 );
 
-my $ROOT_NODE;
-
 sub search {
     my ($self, %args) = @_;
 
@@ -77,7 +78,7 @@ sub search {
     $param{api_id}       = $self->{api_id};
     $param{operation}    = $args{operation} || 'ItemList';
     $param{version}      = _validate_version_param($args{version});
-    $param{timestamp}    = $args{timestamp} || _format_date();
+    $param{timestamp}    = $args{timestamp} || _format_current_time();
     $param{site}         = _validate_site_param($args{site});
 
     # optional parameters
@@ -96,7 +97,7 @@ sub search {
     }
 
     if ($args{keyword}) {
-        $param{keyword} = _encode_keyword($args{keyword});
+        $param{keyword} = Encode::encode('euc-jp', $args{keyword});
     }
 
     _set_root_node_name($param{version});
@@ -111,20 +112,11 @@ sub _set_root_node_name {
     $ROOT_NODE = $version eq '1.00' ? 'responce' : 'response';
 }
 
-sub _encode_keyword {
-    my $keyword = shift;
-    Encode::encode('euc-jp', $keyword);
-}
-
 sub _validate_version_param {
     my $version = shift;
+    return '2.00' unless defined $version;
 
-    unless (defined $version) {
-        return '2.00';
-    }
-
-    my @supported = qw/2.00 1.00/;
-    unless (grep { $version eq $_ } @supported) {
+    unless (grep { $version eq $_ } @supported_api_versions) {
         Carp::croak("Invalid version '$version'");
     }
 
@@ -176,7 +168,7 @@ sub _validate_offset_param {
     return $offset;
 }
 
-sub _format_date {
+sub _format_current_time {
     strftime '%Y-%m-%d %T', localtime;
 }
 
@@ -205,17 +197,24 @@ sub _parse_response {
     my $dom = XML::LibXML->load_xml(string => $decoded);
 
     my $res = WebService::DMM::Response->new();
-    my $message = _get_or_none($dom, "/$ROOT_NODE/result/message", 'TEXT');
+    my $message = _get_text_content(
+        node => $dom, path => "/$ROOT_NODE/result/message"
+    );
     if (defined $message) {
-        my $cause = _get_or_none($dom, "/$ROOT_NODE/result/errors/error/value",
-                                 'TEXT');
+        my $cause = _get_text_content(
+            node => $dom, path => "/$ROOT_NODE/result/errors/error/value"
+        );
         $res->cause($cause);
         $res->is_success(0);
+        return $res;
     }
     $res->is_success(1);
 
     for my $p (qw/result_count total_count first_position/) {
-        $res->$p( _get_or_none($dom, "/$ROOT_NODE/result/$p", 'TEXT') );
+        my $text = _get_text_content(
+            node => $dom, path => "/$ROOT_NODE/result/$p"
+        );
+        $res->$p($text);
     }
 
     $res->items( $self->_parse_items($dom) );
@@ -226,12 +225,11 @@ sub _parse_items {
     my ($self, $dom) = @_;
 
     my @items;
-    my @items_nodes = $dom->findnodes("/$ROOT_NODE/result/items/item");
-    for my $item_node (@items_nodes) {
+    for my $item_node ($dom->findnodes("/$ROOT_NODE/result/items/item")) {
         my %param;
 
         for my $p (qw/service_name floor_name category_name/) {
-            $param{$p} = _get_or_none($item_node, "$p", 'TEXT');
+            $param{$p} = _get_text_content(node => $item_node, path => "$p");
         }
 
         for my $p (qw/content_id product_id URL affiliateURL title date/) {
@@ -240,26 +238,19 @@ sub _parse_items {
 
         # for Smart Phone
         for my $p (qw/URLsp affiliateURLsp/) {
-            $param{$p} = _get_or_none($item_node, $p, 'TEXT');
+            $param{$p} = _get_text_content(node => $item_node, path => $p);
         }
 
-        my $image_url;
-        for my $p (qw/list small large/) {
-            $image_url->{$p} = $item_node->findvalue("imageURL/$p");
-        }
-        $param{image} = $image_url;
-
-        $param{sample_images} = [
-            map { $_->textContent } $item_node->findnodes('sampleImageURL/sample_s/image')
-        ];
+        $param{image} = _image_urls($item_node);
+        $param{sample_images} = _sample_images($item_node);
 
         ## item/prices/*
         for my $p (qw/price price_all list_price/) {
-            $param{$p} = _get_or_none($item_node, "prices/$p", 'TEXT');
+            $param{$p} = _get_text_content(node => $item_node, path => "prices/$p");
         }
 
         ## item/prices/deriveries/*
-        $param{deliveries} = _delivery_info($item_node, 'iteminfo/prices/deliveries');
+        $param{deliveries} = _delivery_info($item_node);
 
         ## item/iteminfo
         $param{keywords} = [
@@ -284,14 +275,19 @@ sub _parse_items {
 
         for my $p (qw/series maker label/) {
             my $class = 'WebService::DMM::' . ucfirst $p;
-            my %params = _get_multi_or_none($item_node, "iteminfo/$p",
-                                            'name', 'id');
+            my @nodes = $item_node->findnodes("iteminfo/$p");
+            next unless @nodes;
 
-            $param{$p} = $class->new(%params);
+            $param{$p} = $class->new(
+                id   => $nodes[0]->findvalue('id'),
+                name => $nodes[0]->findvalue('name')
+            );
         }
 
         for my $p (qw/jancode maker_product isbn stock/) {
-            $param{$p} = _get_or_none($item_node, "iteminfo/$p", 'TEXT');
+            $param{$p} = _get_text_content(
+                node => $item_node, path => "iteminfo/$p"
+            );
         }
 
         push @items, WebService::DMM::Item->new(%param);
@@ -300,61 +296,45 @@ sub _parse_items {
     return \@items;
 }
 
-sub _get_or_none {
-    my ($node, $path, $tag) = @_;
+sub _get_text_content {
+    my (%args) = @_;
 
-    my @nodes = $node->findnodes($path);
+    my @nodes = $args{node}->findnodes($args{path});
     return unless @nodes;
 
-    if ($tag eq 'TEXT') {
-        return $nodes[0]->textContent;
-    } else {
-        return $nodes[0]->findvalue($tag);
-    }
-
-    return;
+    return $nodes[0]->textContent;
 }
 
-sub _get_multi_or_none {
-    my ($node, $path, @tags) = @_;
+sub _image_urls {
+    my $item_node = shift;
 
-    my @nodes = $node->findnodes($path);
-    return unless @nodes;
-
-    my %values;
-    for my $tag (@tags) {
-        if ($tag eq 'TEXT') {
-            $values{$tag} = $nodes[0]->textContent;
-        } else {
-            $values{$tag} = $nodes[0]->findvalue($tag)
-        }
+    my %image_url;
+    for my $p (qw/list small large/) {
+        $image_url{$p} = $item_node->findvalue("imageURL/$p");
     }
 
-    if (%values) {
-        return %values;
-    } else {
-        return;
-    }
+    return \%image_url;
+}
+
+sub _sample_images {
+    my $item_node = shift;
+
+    my @image_nodes = $item_node->findnodes('sampleImageURL/sample_s/image');
+    return [ map { $_->textContent } @image_nodes ];
 }
 
 sub _delivery_info {
-    my ($node, $path) = @_;
+    my $item_node = shift;
 
     my @deliveries;
-    my @delivery_nodes = $node->findnodes($path);
-
-    for my $node (@delivery_nodes) {
-        my $type  = $node->findvalue('type');
-        my $price = $node->findvalue('price');
-
+    for my $node ($item_node->findnodes('iteminfo/prices/deliveries')) {
         push @deliveries, WebService::DMM::Delivery->new(
-            type  => $type,
-            price => $price,
+            type  => $node->findvalue('type'),
+            price => $node->findvalue('price'),
         );
     }
 
-    my $retval = scalar @deliveries ? \@deliveries : [];
-    return $retval;
+    return scalar @deliveries != 0 ? \@deliveries : [];
 }
 
 sub _personal_info {
@@ -383,10 +363,10 @@ sub _personal_info {
             my @aliases;
             my $length = scalar @{$name_aliases};
             for my $i (0..($length - 1)) {
-                my $ruby = defined $ruby_aliases->[$i] ? $ruby_aliases->[$i] : '';
+                my $ruby_alias = defined $ruby_aliases->[$i] ? $ruby_aliases->[$i] : '';
                 push @aliases, {
                     name => $name_aliases->[$i],
-                    ruby => $ruby,
+                    ruby => $ruby_alias,
                 },
             }
 
@@ -405,15 +385,15 @@ sub _personal_info {
 sub _separate_name {
     my $name_str = shift;
 
+    # Name paramter may have Zenkaku/Hankaku spaces and comma.
     if ($name_str =~ m{(.+?)[(（](.+?)[)）]}) {
         my ($name, $aliases_str) = ($1, $2);
 
-        my @aliases;
         if ($aliases_str) {
-            @aliases = split /[,、]/, $aliases_str;
+            return ($name, [ split /[,、]/, $aliases_str ]);
+        } else {
+            return ($name, []);
         }
-
-        return ($name, \@aliases);
     } else {
         return ($name_str);
     }
