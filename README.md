@@ -181,7 +181,7 @@ Syohei YOSHIDA <syohex@gmail.com>
 
 # COPYRIGHT
 
-Copyright 2012- Syohei YOSHIDA
+Copyright 2013 - Syohei YOSHIDA
 
 # LICENSE
 
