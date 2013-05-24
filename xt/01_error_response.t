@@ -25,4 +25,7 @@ my $res = $dmm->search(
 ok !$res->is_success, 'failed';
 ok $res->cause, 'has error cause';
 
+ok $res->last_response;
+isa_ok $res->last_response, 'Furl::Response';
+
 done_testing;
