@@ -1,6 +1,9 @@
 Revision history for Perl extension WebService::DMM
 
 {{$NEXT}}
+       - fix 'last_response' method
+         I implemented it from Web::DMM to Web::DMM::Response
+       - fix for error case
 
 0.06 2013-05-16T14:47:59Z
         - implement 'last_response' method
