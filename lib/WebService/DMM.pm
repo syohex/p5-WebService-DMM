@@ -525,7 +525,7 @@ API ID of DMM. Register your account in DMM and you can get API ID.
 
 =head2 Instance Method
 
-=head3 $dmm->search(%param)
+=head3 $dmm->search(%param) : WebService::DMM::Response
 
 I<%params> mandatory parameters are:
 
