@@ -172,6 +172,11 @@ sub _format_current_time {
     strftime '%Y-%m-%d %T', localtime;
 }
 
+sub last_response {
+    my $self = shift;
+    $self->{_last_response};
+}
+
 sub _send_request {
     my ($self, %args)  = @_;
 
@@ -186,7 +191,7 @@ sub _send_request {
     $self->{_site} = $args{site}; # need for parsing actor information
 
     my $response = $self->_parse_response( \$res->content );
-    $response->last_response($res);
+    $self->{_last_response} = $res;
     return $response;
 }
 
@@ -573,6 +578,10 @@ Search keyword. You can use DMM search keyword style.
 Keyword should be string(not byte sequence).
 
 =back
+
+=head3 $dmm->last_response : Furl::Response
+
+Return last response which is a Furl::Response instance.
 
 =head1 SERVICE AND FLOOR
 

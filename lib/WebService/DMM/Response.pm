@@ -5,7 +5,7 @@ use warnings;
 use Class::Accessor::Lite (
     new => 1,
     rw  => [ qw/result_count total_count first_position items
-                is_success cause last_response/ ],
+                is_success cause/ ],
 );
 
 1;
@@ -45,10 +45,6 @@ WebService::DMM::Response is
 =item cause : String
 
 Cause of failing to request Web API,
-
-=item last_response : Furl::Response
-
-Return last response which is a Furl::Response instance.
 
 =back
 
