@@ -49,7 +49,7 @@ _%args_ must have following parameter:
 
 ## Instance Method
 
-### $dmm->search(%param)
+### $dmm->search(%param) : WebService::DMM::Response
 
 _%params_ mandatory parameters are:
 
@@ -93,6 +93,10 @@ _%param_ optional parameters are:
 
     Search keyword. You can use DMM search keyword style.
     Keyword should be string(not byte sequence).
+
+### $dmm->last\_response : Furl::Response
+
+Return last response which is a Furl::Response instance.
 
 # SERVICE AND FLOOR
 
