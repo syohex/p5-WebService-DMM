@@ -1,6 +1,8 @@
 Revision history for Perl extension WebService::DMM
 
 {{$NEXT}}
+
+0.08 2013-05-25T02:54:01Z
        - revert last 'last_response' method change.
          It should be implemented Web::DMM class
        - Improve document
