@@ -75,7 +75,7 @@ _%param_ optional parameters are:
 
 - offset :Int = 1
 
-    Number of page
+    Offset of searched results
 
 - sort :Str = "rank"
 
