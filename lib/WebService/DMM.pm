@@ -558,7 +558,7 @@ Number of items
 
 =item offset :Int = 1
 
-Number of page
+Offset of searched results
 
 =item sort :Str = "rank"
 

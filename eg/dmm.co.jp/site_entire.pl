@@ -24,6 +24,7 @@ my $res = $dmm->search(
     sort    => 'review',
     keyword => 'rio',
     hits    => 10,
+    offset  => 11,
 );
 die "Failed to request" unless $res->is_success;
 
