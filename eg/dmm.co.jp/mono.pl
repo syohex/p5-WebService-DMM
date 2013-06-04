@@ -25,6 +25,7 @@ my $res = $dmm->search(
     service => 'mono',
     floor   => 'goods',
     hits    => 10,
+    offset  => 11,
 );
 
 my $index = 1;
