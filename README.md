@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/syohex/p5-WebService-DMM.png?branch=master)](https://travis-ci.org/syohex/p5-WebService-DMM)
 # NAME
 
 WebService::DMM - DMM webservice module
@@ -128,7 +129,7 @@ DMM.com services are:
 
 - rental
 
-    rental\_dvd, ppr\_dvd, rental\_cd, ppr\_cd, set\_dvd, set\_cd, comic
+    rental\_dvd, ppr\_dvd, rental\_cd, ppr\_cd, comic
 
 - nandemo
 
@@ -143,7 +144,8 @@ DMM.co.jp services are:
 - monthly
 
     shirouto, nikkatsu, paradisetv, animech, dream, avstation, playgirl, alice,
-    crystal, hmp, waap, momotarobb, moodyz, prestige, jukujo, sod, mania, s1, kmp
+    crystal, hmp, waap, momotarobb, moodyz, prestige, jukujo, sod, mania, s1, kmp,
+    mousouzoku
 
 - ppm
 
@@ -167,11 +169,11 @@ DMM.co.jp services are:
 
 - rental
 
-    rental\_dvd, ppr\_dvd, set\_dvd
+    rental\_dvd, ppr\_dvd
 
 # CUSTOMIZE USER AGENT
 
-You can specify your own instance of [Furl](http://search.cpan.org/perldoc?Furl) to set $WebService::DMM::UserAgent.
+You can specify your own instance of [Furl](https://metacpan.org/pod/Furl) to set $WebService::DMM::UserAgent.
 
     $WebService::DMM::UserAgent = Furl->new( your_own_paramter );
 
