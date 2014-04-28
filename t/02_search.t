@@ -63,7 +63,7 @@ subtest 'service and floor at DMM.com' => sub {
         digital_book => [qw/comic novel magazine photo audio movie/],
         pcsoft => [qw/pcgame pcsoft/],
         mono => [qw/dvd cd book game hobby kaden houseware gourmet/],
-        rental => [qw/rental_dvd ppr_dvd rental_cd ppr_cd set_dvd set_cd comic/],
+        rental => [qw/rental_dvd ppr_dvd rental_cd ppr_cd comic/],
         nandemo => [qw/fashion_ladies fashion_mems rental_iroiro/],
     );
 
@@ -93,13 +93,13 @@ subtest 'service and floor at DMM.co.jp' => sub {
         monthly => [qw/shirouto nikkatsu paradisetv animech dream
                        avstation playgirl alice crystal hmp
                        waap momotarobb moodyz prestige jukujo
-                       sod mania s1 kmp/],
+                       sod mania s1 kmp mousouzoku/],
         ppm => [qw/video videoc/],
         pcgame => [qw/pcgame/],
         doujin => [qw/doujin/],
         book => [qw/book/],
         mono => [qw/dvd goods anime pcgame book doujin/],
-        rental => [qw/rental_dvd ppr_dvd set_dvd/],
+        rental => [qw/rental_dvd ppr_dvd/],
     );
 
     for my $service (keys %service_floor) {

@@ -425,7 +425,7 @@ my %service_floor = (
         digital_book => [qw/comic novel magazine photo audio movie/],
         pcsoft       => [qw/pcgame pcsoft/],
         mono         => [qw/dvd cd book game hobby kaden houseware gourmet/],
-        rental       => [qw/rental_dvd ppr_dvd rental_cd ppr_cd set_dvd set_cd comic/],
+        rental       => [qw/rental_dvd ppr_dvd rental_cd ppr_cd comic/],
         nandemo      => [qw/fashion_ladies fashion_mems rental_iroiro/],
     },
 
@@ -433,13 +433,13 @@ my %service_floor = (
         digital => [qw/videoa videoc nikkatsu anime photo/],
         monthly => [qw/shirouto nikkatsu paradisetv animech dream avstation
                        playgirl alice crystal hmp waap momotarobb moodyz
-                       prestige jukujo sod mania s1 kmp/],
+                       prestige jukujo sod mania s1 kmp mousouzoku/],
         ppm     => [qw/video videoc/],
         pcgame  => [qw/pcgame/],
         doujin  => [qw/doujin/],
         book    => [qw/book/],
         mono    => [qw/dvd goods anime pcgame book doujin/],
-        rental  => [qw/rental_dvd ppr_dvd set_dvd/],
+        rental  => [qw/rental_dvd ppr_dvd/],
     },
 );
 
@@ -615,7 +615,7 @@ dvd, cd, book, game, hobby, kaden, houseware, gourmet
 
 =item rental
 
-rental_dvd, ppr_dvd, rental_cd, ppr_cd, set_dvd, set_cd, comic
+rental_dvd, ppr_dvd, rental_cd, ppr_cd, comic
 
 =item nandemo
 
@@ -634,7 +634,8 @@ videoa, videoc, nikkatsu, anime, photo
 =item monthly
 
 shirouto, nikkatsu, paradisetv, animech, dream, avstation, playgirl, alice,
-crystal, hmp, waap, momotarobb, moodyz, prestige, jukujo, sod, mania, s1, kmp
+crystal, hmp, waap, momotarobb, moodyz, prestige, jukujo, sod, mania, s1, kmp,
+mousouzoku
 
 =item ppm
 
@@ -658,7 +659,7 @@ dvd, good, anime, pcgame, book, doujin
 
 =item rental
 
-rental_dvd, ppr_dvd, set_dvd
+rental_dvd, ppr_dvd
 
 =back
 
