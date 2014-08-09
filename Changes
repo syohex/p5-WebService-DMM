@@ -1,6 +1,7 @@
 Revision history for Perl extension WebService::DMM
 
 {{$NEXT}}
+      - Update API of 'digital_book' in DMM.com
 
 0.10 2014-04-28T17:10:14Z
        - Update API
