@@ -422,7 +422,7 @@ my %service_floor = (
         lod          => [qw/akb48 ske48/],
         digital      => [qw/bandai anime video idol cinema fight/],
         monthly      => [qw/toei animate shochikugeino idol cinepara dgc fleague/],
-        digital_book => [qw/comic novel magazine photo audio movie/],
+        digital_book => [qw/comic novel photo otherbooks/],
         pcsoft       => [qw/pcgame pcsoft/],
         mono         => [qw/dvd cd book game hobby kaden houseware gourmet/],
         rental       => [qw/rental_dvd ppr_dvd rental_cd ppr_cd comic/],
@@ -603,7 +603,7 @@ toei, animate, shochikugeino, idol, cinepara, dgc, fleague
 
 =item digital_book
 
-comic, novel, magazine, photo, audio, movie
+comic, novel, photo, otherbooks
 
 =item pcsoft
 
