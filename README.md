@@ -117,7 +117,7 @@ DMM.com services are:
 
 - digital\_book
 
-    comic, novel, magazine, photo, audio, movie
+    comic, novel, photo, otherbooks
 
 - pcsoft
 
